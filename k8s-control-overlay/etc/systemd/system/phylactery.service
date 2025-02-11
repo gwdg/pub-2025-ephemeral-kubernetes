@@ -1,0 +1,11 @@
+[Unit]
+Description=K8s-Phylactery Daemonset Service
+After=network.target
+
+[Service]
+User=root
+ExecStart=/usr/bin/python3 /k8s-helper/phylactery.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

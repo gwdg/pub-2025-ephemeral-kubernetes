@@ -1,0 +1,41 @@
+FROM ghcr.io/hpcng/warewulf-rockylinux:9
+
+ENV KVER=5.14.0-362.13.1.el9_3.x86_64
+
+COPY docker-ce.repo /etc/yum.repos.d/docker-ce.repo
+COPY kubernetes.repo /etc/yum.repos.d/kubernetes.repo
+
+RUN dnf update -y
+
+RUN dnf install -y containerd.io nano
+RUN containerd config default > /etc/containerd/config.toml
+RUN sed -i 's/SystemdCgroup \= false/SystemdCgroup \= true/g' /etc/containerd/config.toml
+
+RUN dnf install -y kubelet kubeadm kubectl iproute-tc jq --disableexcludes=kubernetes
+
+
+RUN cp /usr/lib/modules/${KVER}/vmlinuz /boot/vmlinuz-${KVER}-k8s-control-ww && \
+    mv /usr/lib/modules/${KVER} /usr/lib/modules/${KVER}-k8s-control-ww && \
+    ln -s /usr/lib/modules/${KVER}-k8s-control-ww /usr/lib/modules/${KVER}
+
+ADD https://get.helm.sh/helm-v3.16.3-linux-amd64.tar.gz /tmp/helm.tar.gz
+RUN tar xf /tmp/helm.tar.gz -C /tmp && \
+    mv /tmp/linux-amd64/helm /usr/local/bin/helm && \
+    rm -rf /tmp/linux-amd64 && rm -f /tmp/helm.tar.gz
+
+ADD https://github.com/cilium/cilium-cli/releases/download/v0.16.20/cilium-linux-amd64.tar.gz /tmp/cilium.tar.gz
+RUN tar xf /tmp/cilium.tar.gz -C /tmp && \
+    mv /tmp/cilium /usr/local/bin/cilium && \
+    rm -f /tmp/cilium.tar.gz
+
+ADD https://github.com/mikefarah/yq/releases/download/v4.44.5/yq_linux_amd64.tar.gz /tmp/yq.tar.gz
+RUN tar xf /tmp/yq.tar.gz -C /tmp && \
+    mv /tmp/yq_linux_amd64 /usr/local/bin/yq && \
+    rm -rf /tmp/yq.tar.gz
+
+ADD https://github.com/etcd-io/etcd/releases/download/v3.5.18/etcd-v3.5.18-linux-amd64.tar.gz /tmp/etcd.tar.gz
+RUN tar xf /tmp/etcd.tar.gz -C /tmp && \
+    mv /tmp/etcd-v3.5.18-linux-amd64/etcdctl /usr/local/bin/etcdctl && \
+    rm -rf /tmp/etcd.tar.gz && rm -rf /tmp/etcd-v3.5.18-linux-amd64
+
+RUN dnf clean all && rm -rf /tmp/*

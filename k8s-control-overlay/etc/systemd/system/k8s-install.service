@@ -1,0 +1,15 @@
+[Unit]
+Description=Kubernetes installation completion script
+After=network.target
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/k8s-helper/k8s-install.sh
+RemainAfterExit=no
+User=root
+Group=root
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
