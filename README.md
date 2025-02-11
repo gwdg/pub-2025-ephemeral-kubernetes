@@ -134,5 +134,36 @@ Set `export KUBECONFIG=/share/kube.config` in `.bashrc`.
 
 Now you can run `kubectl get nodes`, `kubectl get pods -A` from the cluster manager.
 
+## Usage
+
+After completing installation steps, the cluster can be rebooted using the `rebuild-and-restart.sh` script, which clears the files from the /share folder before restarting all nodes.
+This effectively resets the cluster and causes it to be recreated.
+
+The cluster persists if only a single control node is restarted at a time.
+Worker nodes can be restarted arbitrarily.
+
+Via `wwctl overlay edit k8s-control /k8s-helper/k8s-install.sh` additional yaml files can be loaded by the leader after the cluster is initalized.
+These yaml files should also be added to the overlay if the nodes do not have internet access.
+
 ## How it works
 
+When the nodes start
+- The k8s-install systemd service is triggered on each of them
+- This runs /k8s-helper/k8s-install.sh
+- The first node to run this script up to a certain point claims leadership to initialize the cluster
+- To signal this to the other nodes, the leader creates a file `/share/leader`
+- The other nodes now all wait for the file `/share/leader_ready` to appear
+- The leader intializes the cluster and copies the certificates to `/share/pki` and the kubeconfig to `/share/kube.config`
+- While initializing the control nodes also start a service called `phylactery`, which on start-up adds the node to a shared configuration for the HAProxy setup
+- The `phylactery` service then checks if a node with the same name or IP already exists in the cluster, which is left over from the node being rebooted, and removes it so the node can properly rejoin
+- Then the `phylactery` service exposes an HTTP server that can be called to trigger a refresh of the HAProxy configuration
+- Once the leader has finished initializing the cluster, it adds kube-flannel as the CNI and creates the file `/share/leader_ready`
+- All other nodes can now proceed, using the kubeconfig under share to join the cluster
+
+When a node is restarted
+- When restarting a worker node, it checks if a node with the same name is already in the cluster and if yes, removes it and then joins
+- When restarting a control node, it starts its `phylactery` service, which checks if there is already a node with the same name in the cluster or in the etcd members list and removes them before rejoining
+
+Limitations
+- etcd supports recovery from up to `(N-1)/2` nodes failing, which for a 3 node cluster is 1, so if 2 out of 3 nodes fail, the cluster cannot recover on its own (see https://etcd.io/docs/v3.5/op-guide/recovery/)
+    - In this case, the cluster can be reset by rebooting all nodes, this is not detected automatically

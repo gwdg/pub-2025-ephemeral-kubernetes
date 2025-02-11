@@ -1,3 +1,11 @@
+################################################################################
+# Author: Jonathan Decker
+# Email: jonathan.decker@uni-goettingen.de
+# Date: 2025-02-11
+# Description: Service that helps set up and update control nodes in an HA setup
+# Version: 1.0
+################################################################################
+
 import fcntl
 import http.server
 import socketserver

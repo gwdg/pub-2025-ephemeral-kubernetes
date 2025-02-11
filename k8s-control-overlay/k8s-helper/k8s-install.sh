@@ -1,5 +1,13 @@
 #!/bin/bash
 
+################################################################################
+# Author: Jonathan Decker
+# Email: jonathan.decker@uni-goettingen.de
+# Date: 2025-02-11
+# Description: Installation Script for Ephemeral Kubernetes
+# Version: 1.0
+################################################################################
+
 set -xeuo pipefail
 
 if [ "$EUID" -ne 0 ]
