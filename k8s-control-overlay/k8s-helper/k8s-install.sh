@@ -70,7 +70,7 @@ ctr -n k8s.io image import --base-name ghcr.io/flannel-io/flannel-cni-plugin:v1.
 LEADER_FILE="/share/leader"
 LEADER_READY_FILE="/share/leader_ready"
 
-PHYLACTERY_READY_FILE="/root/phylactery_ready"
+PHYLACTERY_READY_FILE="/k8s-helper/phylactery_ready"
 
 # Check if there is already a working cluster
 ## TODO
@@ -94,7 +94,10 @@ if ! hostname | grep -q "control"; then
     kubectl --kubeconfig /share/kube.config delete node "$(hostname)"
   fi
 
-  kubeadm join --discovery-file /share/kube.config --v=5
+  if ! kubeadm join --discovery-file /share/kube.config --v=5; then
+    echo "Failed to join, cleaning up and then trying again"
+    kubeadm reset -f
+  fi
 
   echo "Worker done."
   exit 0
@@ -125,13 +128,8 @@ if ! (set -o noclobber; echo $(hostname) > "$LEADER_FILE"); then
   cp /share/pki/etcd/ca.key /etc/kubernetes/pki/etcd/ca.key
 
   # Phylactery service setup, this also starts haproxy
-  cp /share/phylactery/phylactery.py /root/phylactery.py
-  cp /share/phylactery/phylactery.service /etc/systemd/system/phylactery.service
-
-  systemctl daemon-reload
   systemctl start phylactery.service
 
-  #systemctl start haproxy
   systemctl start keepalived
 
   # Setup kubectl access
@@ -144,21 +142,20 @@ if ! (set -o noclobber; echo $(hostname) > "$LEADER_FILE"); then
     sleep 5
   done
 
-  kubeadm join --discovery-file /root/.kube/config --control-plane --v=5
+  if ! kubeadm join --discovery-file /root/.kube/config --control-plane --v=5; then
+    echo "Failed to join, cleaning up and then trying again"
+    kubeadm reset -f
+  fi
+
   echo "Follower done."
   exit 0
 fi
-
-# Phylactery service setup, this also starts haproxy
-#cp /share/phylactery/phylactery.py /root/phylactery.py
-#cp /share/phylactery/phylactery.service /etc/systemd/system/phylactery.service
 
 mkdir -p /share/phylactery
 mkdir -p /share/pki/etcd
 cp /k8s-helper/haproxy.cfg /share/phylactery/haproxy.cfg
 cp /k8s-helper/haproxy.cfg.base /share/phylactery/haproxy.cfg.base
 
-systemctl daemon-reload
 systemctl start phylactery.service
 
 #systemctl start haproxy
@@ -191,10 +188,6 @@ cp /etc/kubernetes/pki/etcd/ca.key /share/pki/etcd/ca.key
 
 # Setup CNI
 kubectl apply -f /k8s-helper/kube-flannel.yml
-
-#cilium install --version 1.16.1 \
-#   --helm-set <option here> \ # see https://github.com/cilium/cilium/blob/v1.16.1/install/kubernetes/cilium/values.yaml
-#   --wait
 
 # Wait for etcd to create the server certs
 while [ ! -f "/etc/kubernetes/pki/etcd/server.crt" ]; do
