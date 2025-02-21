@@ -62,14 +62,16 @@ On the cluster-manager node proceed with the following steps:
     - `exit`
 
 Add the nodes in Warewulf
-- `wwctl node add control 0`
+- `wwctl node add control0`
 - `wwctl node set --container warewulf-rockylinux:9 control0`
 - `wwctl node set --hwaddr <MAC ADDR> control0` The MAC Address can be found under Instances, control0, Interfaces
 - `wwctl node set --ipaddr <IP ADDR> control0` The IP Address can be found in the same interface as the MAC Address
 - `wwctl node set --netmask 255.255.255.0 control0`
 - `wwctl node set --netdev net0 control0`
+- `wwctl node set --nettagadd DNS1=1.1.1.1 control0` This sets the nameserver to be used
 
 Do so for all control and worker nodes.
+The pattern `control[0-99] and worker[0-99]` can be used to affect multiple nodes at once.
 - `wwctl configure -a`
 
 In OpenStack reboot the VMs and check console to ensure the nodes properly boot.
