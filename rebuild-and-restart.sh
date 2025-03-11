@@ -1,6 +1,6 @@
 #!/bin/bash
 
-wwctl overlay chmod k8s-control /k8s-helper/k8s-install.sh 650
+wwctl overlay chmod k8s-overlay /k8s-helper/k8s-install.sh 650
 wwctl overlay build
 
 ./clean-up.sh

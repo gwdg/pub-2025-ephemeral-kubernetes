@@ -90,11 +90,11 @@ Setup an NFS share, which will be used to share tokens and certs between the nod
 - `wwctl overlay build control0`
 
 Create the overlay to be used by the cluster
-- `wwctl overlay create k8s-control`
+- `wwctl overlay create k8s-overlay`
 
 Clone this repository and cd into it.
-- Set the IP of the cluster manager as `--apiserver-cert-extra-sans=<IP ADDR` in `k8s-control-overlay/k8s-helper/k8s-install.sh`, the default is 10.0.0.13
-- `cp -r k8s-control-overlay /var/lib/warewulf/overlays/k8s-control`
+- Set the IP of the cluster manager as `--apiserver-cert-extra-sans=<IP ADDR` in `k8s-overlay/k8s-helper/k8s-install.sh`, the default is 10.0.0.13
+- `cp -r k8s-overlay /var/lib/warewulf/overlays/k8s-control`
 - `cd k8s-images`
     - `./download-images.sh` This repo uses Kubernetes 1.32.1 by default
     - `./copy-images.sh`
@@ -109,8 +109,8 @@ The worker nodes should use k8s-base-ww and the control nodes k8s-control-ww.
 - `wwctl node set --container k8s-base-ww worker[0-99]`
 
 Worker and control should both use the k8s-control overlay.
-- `wwctl node set -O wwinit,k8s-control control[0-99]`
-- `wwctl node set -O wwinit,k8s-control worker[0-99]`
+- `wwctl node set -O wwinit,k8s-overlay control[0-99]`
+- `wwctl node set -O wwinit,k8s-overlay worker[0-99]`
 
 Set rootfs to tmpfs so containerd works as otherwise pivot root will fail
 - `wwctl node set --root tmpfs control[0-99]`
