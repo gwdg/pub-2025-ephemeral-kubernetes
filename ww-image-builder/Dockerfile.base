@@ -23,10 +23,11 @@ RUN tar xf /tmp/helm.tar.gz -C /tmp && \
     mv /tmp/linux-amd64/helm /usr/local/bin/helm && \
     rm -rf /tmp/linux-amd64 && rm -f /tmp/helm.tar.gz
 
-ADD https://github.com/cilium/cilium-cli/releases/download/v0.16.20/cilium-linux-amd64.tar.gz /tmp/cilium.tar.gz
-RUN tar xf /tmp/cilium.tar.gz -C /tmp && \
-    mv /tmp/cilium /usr/local/bin/cilium && \
-    rm -f /tmp/cilium.tar.gz
+# Include this along with Cilium and adjust k8s-install.sh to use Cilium instead of Flannel
+#ADD https://github.com/cilium/cilium-cli/releases/download/v0.16.20/cilium-linux-amd64.tar.gz /tmp/cilium.tar.gz
+#RUN tar xf /tmp/cilium.tar.gz -C /tmp && \
+#    mv /tmp/cilium /usr/local/bin/cilium && \
+#    rm -f /tmp/cilium.tar.gz
 
 ADD https://github.com/mikefarah/yq/releases/download/v4.44.5/yq_linux_amd64.tar.gz /tmp/yq.tar.gz
 RUN tar xf /tmp/yq.tar.gz -C /tmp && \
