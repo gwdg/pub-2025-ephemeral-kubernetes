@@ -18,7 +18,7 @@ for stage in stages:
     print(f"Standard Deviation: {std_dev:.2f} seconds")
     print()
 
-df.columns = ['First Node Booted', 'Leader File Created', 'Kubernetes Endpoint Responsive', 'Leader Ready File Created', 'Cluster Ready', 'Aggregated']
+df.columns = ['First Control Node Booted', 'Leader File Created', 'Kubernetes Endpoint Responsive', 'Leader Ready File Created', 'Cluster Ready', 'Aggregated']
 
 # Generate box diagrams with scatter plot
 plt.figure(figsize=(10, 6))
